@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client"
-import { prisma } from "../config/db"
+import { prisma } from "../../config/db"
 
 const createUser = async(payload: Prisma.UserCreateInput)=>{
     const userCreate = await prisma.user.create({
@@ -18,7 +18,7 @@ const getSingleUser = async (id: string) => {
   return user;
 };
 
-const updateUser = async (id: string, payload: any) => {
+const updateUser = async (id: string, payload: Prisma.UserUpdateInput) => {
   const user = await prisma.user.update({
     where: { id },
     data: payload,
