@@ -34,6 +34,12 @@ const createBlog = async (req: Request, res: Response) => {
         message: "Database request error. Please check your query.",
       });
     }
+     if(error instanceof Prisma.PrismaClientValidationError){
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid or missing input. Please check your data"
+                })
+            }
 
     res.status(500).json({
       success: false,

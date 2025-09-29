@@ -6,6 +6,7 @@ import { Prisma } from "@prisma/client";
 const createUser = async(req: Request, res: Response)=>{
     try{
         const user = await UserService.createUser(req.body)
+  
         res.status(201).json({
             success: true,
             message: "User created successfully",
@@ -23,22 +24,40 @@ const createUser = async(req: Request, res: Response)=>{
             }
         }
         // validation error (missing ? invalid fields)
-        if(error instanceof Prisma.PrismaClientValidationError){
-            return res.status(400).json({
-                success: false,
-                message: "Invalid or missing input. Please check your data"
-            })
-        }
+       
         res.status(500).json({
             success: false,
             message: error.message || "Something went wrong creating the user. please try again later"
         })
     }
 }
-const getUser = async(req: Request, res: Response)=>{
+const login = async(req: Request, res: Response)=>{
+ try{
+   const loginUser = await UserService.login(req.body)
+     res.status(201).json({
+            success: true,
+            message: "User login successfully",
+            date: loginUser
+        })
+ }catch(error:any){
+  console.log(error)
+    if(error instanceof Prisma.PrismaClientValidationError){
+            return res.status(400).json({
+                success: false,
+                message: "Invalid or missing input. Please check your data"
+            })
+        }
+          res.status(500).json({
+            success: false,
+            message: error.message || "Something went wrong creating the user. please try again later"
+        })
+ }
+}
+const getUser = async(_req: Request, res: Response)=>{
    try{
-     const user = await UserService.getUser();
-     if(!user || user.length === 0){
+     const users = await UserService.getUser();
+    const safeUsers = users.map(({password, ...rest})=>rest)
+     if(!users || users.length === 0){
         return res.status(404).json({
             success: false,
             message: "No user found",
@@ -48,7 +67,7 @@ const getUser = async(req: Request, res: Response)=>{
      res.status(200).json({
         success: true,
         message: "User fetched successfully",
-        data: user
+        data: safeUsers
      })
    }catch(error){
     console.log(error)
@@ -89,11 +108,11 @@ const getSingleUser = async (req: Request, res: Response) => {
         message: "User not found.",
       });
     }
-
+const {password, ...safeUser} = user
     res.status(200).json({
       success: true,
       message: "Single User fetched successfully.",
-      data: user,
+      data: safeUser,
     });
   } catch (error: any) {
     console.error(error);
@@ -210,5 +229,6 @@ export const UserController = {
     getUser,
     getSingleUser,
     updateUser,
-    deleteUser
+    deleteUser,
+    login
 }

@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { AnalyticsService } from "./analytic.service";
+import { Prisma } from "@prisma/client";
 
 
 const createAnalytics = async (req: Request, res: Response) => {
@@ -11,6 +12,12 @@ const createAnalytics = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
+     if(error instanceof Prisma.PrismaClientValidationError){
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid or missing input. Please check your data"
+                })
+            }
     res.status(500).json({
       success: false,
       message: error.message || "Something went wrong while creating analytics",

@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { ResumeService } from "./resume.service";
+import { Prisma } from "@prisma/client";
 
 const createResume = async (req: Request, res: Response) => {
   try {
@@ -71,6 +72,19 @@ const updateResume = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+          if (error.code === "P2025") {
+            return res.status(404).json({
+              success: false,
+              message: "User not found.",
+            });
+          }
+    
+          return res.status(400).json({
+            success: false,
+            message: "Database request error. Please check your query.",
+          });
+        }
     res.status(500).json({
       success: false,
       message: error.message || "Something went wrong while updating resume",
