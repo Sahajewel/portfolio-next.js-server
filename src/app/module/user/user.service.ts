@@ -1,7 +1,8 @@
 import { Prisma } from "@prisma/client"
 import { prisma } from "../../config/db"
 import bcrypt from "bcryptjs"
-
+import jwt from "jsonwebtoken"
+import { number } from "joi"
 
 const createUser = async(payload: Prisma.UserCreateInput)=>{
   if(!payload.password){
@@ -39,8 +40,17 @@ const isMatched = await bcrypt.compare(payload.password, user.password)
 if(!isMatched){
   throw new Error("Invalid Password")
 }
+const JWT_SECRET = process.env.JWT_SECRET;
+if(!JWT_SECRET){
+  throw new Error("Jwt_secret is not defined in env")
+}
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1h";
+const tokenPayload = {
+id: user.id, role: user.role
+}
+const token = jwt.sign(tokenPayload, JWT_SECRET, {expiresIn:JWT_EXPIRES_IN as jwt.SignOptions["expiresIn"]})
  const { password, ...safeUser } = user;
-return safeUser
+return {...safeUser, token}
 }
 const getUser = async()=>{
     const userGet = await prisma.user.findMany();
