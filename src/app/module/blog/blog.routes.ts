@@ -4,8 +4,8 @@ import { verifyToken } from "../../middleware/auth";
 
 const router = Router();
 
-router.post("/create-blog",verifyToken, BlogController.createBlog);
-router.get("/",verifyToken, BlogController.getAllBlogs);
+router.post("/create-blog", BlogController.createBlog);
+router.get("/", BlogController.getAllBlogs);
 router.get("/:id", BlogController.getSingleBlog);
 router.patch("/:id", BlogController.updateBlog);
 router.delete("/:id", BlogController.deleteBlog);

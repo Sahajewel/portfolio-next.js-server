@@ -24,7 +24,12 @@ const createUser = async(req: Request, res: Response)=>{
             }
         }
         // validation error (missing ? invalid fields)
-       
+        if(error instanceof Prisma.PrismaClientValidationError){
+                       return res.status(400).json({
+                           success: false,
+                           message: "Invalid or missing input. Please check your data"
+                       })
+                   }
         res.status(500).json({
             success: false,
             message: error.message || "Something went wrong creating the user. please try again later"
