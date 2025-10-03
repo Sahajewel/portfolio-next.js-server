@@ -60,10 +60,10 @@ Create a `.env` file in the root directory:
 #### For PostgreSQL + Prisma:
 ```env
 # Database
-DATABASE_URL="postgresql://neondb_owner:npg_lF8qNtZpU4Qf@ep-delicate-glitter-a16ievea-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
+DATABASE_URL="your neon db database"
 
 # JWT
-JWT_SECRET="0ca973c0a210357dfbac99ae7f218d68bc4c4d47d031e891931f2d6c6f4dda1ba5bd3b25b747d8ddaef09ec9dc36854020f10e6b2bab1b46fb77a56e6ef7c477"
+JWT_SECRET="your jwt secret"
 JWT_EXPIRES_IN=7d
 
 # Server
