@@ -8,13 +8,14 @@ import { router } from "./app/routes";
 const app = express();
 
 // Middleware
-app.use(cors()); // Enables Cross-Origin Resource Sharing
+ // Enables Cross-Origin Resource Sharing
 app.use(compression()); // Compresses response bodies for faster delivery
 app.use(express.json()); // Parse incoming JSON requests
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    // origin: ["https://portfolio-frontend-five-blond.vercel.app"],
+    origin: ["http://localhost:3000"],
     credentials: true,
   })
 );

@@ -4,27 +4,27 @@ import dotenv from "dotenv";
 import app from "./app";
 import { prisma } from "./app/config/db";
 
-
 dotenv.config();
 
 let server: Server | null = null;
+const PORT = process.env.PORT || 5000;
 
 async function connectToDB() {
   try {
-    await prisma.$connect()
-    console.log("*** DB connection successfull!!")
+    await prisma.$connect();
+    console.log("*** DB connection successful!!");
   } catch (error) {
-    console.log("*** DB connection failed!")
+    console.log("*** DB connection failed!");
     process.exit(1);
   }
 }
 
 async function startServer() {
   try {
-    await connectToDB()
+    await connectToDB();
     server = http.createServer(app);
-    server.listen(process.env.PORT, () => {
-      console.log(`🚀 Server is running on port ${process.env.PORT}`);
+    server.listen(PORT, () => {
+      console.log(`🚀 Server is running on port ${PORT}`);
     });
 
     handleProcessEvents();
@@ -36,7 +36,6 @@ async function startServer() {
 
 /**
  * Gracefully shutdown the server and close database connections.
- * @param {string} signal - The termination signal received.
  */
 async function gracefulShutdown(signal: string) {
   console.warn(`🔄 Received ${signal}, shutting down gracefully...`);
@@ -44,13 +43,11 @@ async function gracefulShutdown(signal: string) {
   if (server) {
     server.close(async () => {
       console.log("✅ HTTP server closed.");
-
       try {
         console.log("Server shutdown complete.");
       } catch (error) {
         console.error("❌ Error during shutdown:", error);
       }
-
       process.exit(0);
     });
   } else {

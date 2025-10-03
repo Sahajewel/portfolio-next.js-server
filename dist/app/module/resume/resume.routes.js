@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ResumeRoutes = void 0;
+const express_1 = require("express");
+const resume_controller_1 = require("./resume.controller");
+const router = (0, express_1.Router)();
+router.post("/create-resume", resume_controller_1.ResumeController.createResume);
+router.get("/", resume_controller_1.ResumeController.getResumes);
+router.get("/:id", resume_controller_1.ResumeController.getResumeById);
+router.patch("/:id", resume_controller_1.ResumeController.updateResume);
+router.delete("/:id", resume_controller_1.ResumeController.deleteResume);
+exports.ResumeRoutes = router;
