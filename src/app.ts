@@ -14,8 +14,8 @@ app.use(express.json()); // Parse incoming JSON requests
 
 app.use(
   cors({
-    // origin: ["https://portfolio-frontend-five-blond.vercel.app"],
-    origin: ["http://localhost:3000"],
+    origin: ["https://portfolio-frontend-five-blond.vercel.app"],
+    // origin: ["http://localhost:3000"],
     credentials: true,
   })
 );
