@@ -8,6 +8,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum ProjectCategory {
+  FULLSTACK // 🚀 FullStack Projects
+  HTMLCSSJS // ⚡ HTML/CSS/JavaScript Projects
+  HTMLCSS // 🎨 HTML/CSS Projects
+  OTHERS // 📱 Other Projects
+}
+
 model User {
   id        String   @id @default(cuid())
   name      String
@@ -25,19 +32,19 @@ model User {
 }
 
 model Blog {
-  id          String   @id @default(cuid())
-  title       String
-  slug        String   @unique
-  content     String
-  excerpt     String?
-  thumbnail   String?
-  published   Boolean  @default(false)
-  views       Int      @default(0)
-  tags        String[]
-  metaTitle   String?
-  metaDesc    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  content   String
+  excerpt   String?
+  thumbnail String?
+  published Boolean  @default(false)
+  views     Int      @default(0)
+  tags      String[]
+  metaTitle String?
+  metaDesc  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId String
@@ -46,16 +53,17 @@ model Blog {
 }
 
 model Project {
-  id          String   @id @default(cuid())
-  title       String
-  description String
-  thumbnail   String?
-  liveUrl     String?
-  githubUrl   String?
+  id           String          @id @default(cuid())
+  title        String
+  description  String
+  thumbnail    String?
+  liveUrl      String?
+  githubUrl    String?
   technologies String[]
-  featured    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  category     ProjectCategory @default(FULLSTACK)
+  featured     Boolean         @default(false)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
 
   @@map("projects")
 }
@@ -73,11 +81,11 @@ model Resume {
 }
 
 model Analytics {
-  id         String   @id @default(cuid())
-  page       String
-  views      Int      @default(1)
+  id          String   @id @default(cuid())
+  page        String
+  views       Int      @default(1)
   uniqueViews Int      @default(1)
-  date       DateTime @default(now())
+  date        DateTime @default(now())
 
   @@map("analytics")
 }

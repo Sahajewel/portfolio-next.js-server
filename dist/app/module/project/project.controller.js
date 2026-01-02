@@ -15,7 +15,37 @@ const client_1 = require("@prisma/client");
 // Create
 const createProject = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const result = yield project_service_1.ProjectService.createProject(req.body);
+        // Validate request body
+        const { title, description, category, technologies } = req.body;
+        if (!title || !description) {
+            return res.status(400).json({
+                success: false,
+                message: "Title and description are required",
+            });
+        }
+        // Validate category if provided
+        if (category && !Object.values(client_1.ProjectCategory).includes(category)) {
+            return res.status(400).json({
+                success: false,
+                message: `Invalid category. Must be one of: ${Object.values(client_1.ProjectCategory).join(", ")}`,
+            });
+        }
+        // Prepare payload
+        const payload = {
+            title,
+            description,
+            technologies: technologies || [],
+            category: category || client_1.ProjectCategory.FULLSTACK, // Default to FULLSTACK
+            featured: req.body.featured || false,
+        };
+        // Optional fields
+        if (req.body.thumbnail)
+            payload.thumbnail = req.body.thumbnail;
+        if (req.body.liveUrl)
+            payload.liveUrl = req.body.liveUrl;
+        if (req.body.githubUrl)
+            payload.githubUrl = req.body.githubUrl;
+        const result = yield project_service_1.ProjectService.createProject(payload);
         res.status(201).json({
             success: true,
             message: "Project created successfully",
@@ -23,7 +53,7 @@ const createProject = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         });
     }
     catch (error) {
-        console.error(error);
+        console.error("Create project error:", error);
         if (error instanceof client_1.Prisma.PrismaClientValidationError) {
             return res.status(400).json({
                 success: false,
@@ -32,7 +62,7 @@ const createProject = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         }
         res.status(500).json({
             success: false,
-            message: error.message || "Something went wrong creating the project. Please try again later.",
+            message: error.message || "Something went wrong creating the project.",
         });
     }
 });
@@ -40,24 +70,47 @@ const createProject = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 const getAllProjects = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const result = yield project_service_1.ProjectService.getAllProjects();
-        if (!result.length) {
-            return res.status(404).json({
-                success: false,
-                message: "No projects found",
-                data: [],
-            });
-        }
         res.status(200).json({
             success: true,
-            message: "Projects fetched successfully",
+            message: result.length
+                ? "Projects fetched successfully"
+                : "No projects found",
             data: result,
         });
     }
     catch (error) {
-        console.error(error);
+        console.error("Get all projects error:", error);
         res.status(500).json({
             success: false,
-            message: "Something went wrong while fetching projects. Please try again later.",
+            message: "Something went wrong while fetching projects.",
+        });
+    }
+});
+// Get Projects by Category
+const getProjectsByCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { category } = req.params;
+        // Validate category
+        if (!Object.values(client_1.ProjectCategory).includes(category)) {
+            return res.status(400).json({
+                success: false,
+                message: `Invalid category. Must be one of: ${Object.values(client_1.ProjectCategory).join(", ")}`,
+            });
+        }
+        const result = yield project_service_1.ProjectService.getProjectsByCategory(category);
+        res.status(200).json({
+            success: true,
+            message: result.length
+                ? "Projects fetched successfully"
+                : "No projects found in this category",
+            data: result,
+        });
+    }
+    catch (error) {
+        console.error("Get projects by category error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Something went wrong while fetching projects by category.",
         });
     }
 });
@@ -79,10 +132,10 @@ const getProjectById = (req, res) => __awaiter(void 0, void 0, void 0, function*
         });
     }
     catch (error) {
-        console.error(error);
+        console.error("Get project by ID error:", error);
         res.status(500).json({
             success: false,
-            message: "Something went wrong while fetching project. Please try again later.",
+            message: "Something went wrong while fetching project.",
         });
     }
 });
@@ -90,6 +143,14 @@ const getProjectById = (req, res) => __awaiter(void 0, void 0, void 0, function*
 const updateProject = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
+        // Validate category if provided
+        if (req.body.category &&
+            !Object.values(client_1.ProjectCategory).includes(req.body.category)) {
+            return res.status(400).json({
+                success: false,
+                message: `Invalid category. Must be one of: ${Object.values(client_1.ProjectCategory).join(", ")}`,
+            });
+        }
         const result = yield project_service_1.ProjectService.updateProject(id, req.body);
         res.status(200).json({
             success: true,
@@ -98,7 +159,7 @@ const updateProject = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         });
     }
     catch (error) {
-        console.error(error);
+        console.error("Update project error:", error);
         if (error.code === "P2025") {
             return res.status(404).json({
                 success: false,
@@ -107,7 +168,7 @@ const updateProject = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         }
         res.status(500).json({
             success: false,
-            message: "Something went wrong while updating project. Please try again later.",
+            message: error.message || "Something went wrong while updating project.",
         });
     }
 });
@@ -122,7 +183,7 @@ const deleteProject = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         });
     }
     catch (error) {
-        console.error(error);
+        console.error("Delete project error:", error);
         if (error.code === "P2025") {
             return res.status(404).json({
                 success: false,
@@ -131,13 +192,14 @@ const deleteProject = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         }
         res.status(500).json({
             success: false,
-            message: "Something went wrong while deleting project. Please try again later.",
+            message: "Something went wrong while deleting project.",
         });
     }
 });
 exports.ProjectController = {
     createProject,
     getAllProjects,
+    getProjectsByCategory,
     getProjectById,
     updateProject,
     deleteProject,

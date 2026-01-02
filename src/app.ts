@@ -3,12 +3,10 @@ import cors from "cors";
 import express from "express";
 import { router } from "./app/routes";
 
-
-
 const app = express();
 
 // Middleware
- // Enables Cross-Origin Resource Sharing
+// Enables Cross-Origin Resource Sharing
 app.use(compression()); // Compresses response bodies for faster delivery
 app.use(express.json()); // Parse incoming JSON requests
 
@@ -22,12 +20,10 @@ app.use(
 
 app.use("/api/v1", router);
 
-
 // Default route for testing
 app.get("/", (_req, res) => {
   res.send("API is running");
 });
-
 
 // 404 Handler
 app.use((req, res, next) => {

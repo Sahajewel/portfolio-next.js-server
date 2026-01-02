@@ -1,18 +1,54 @@
+// app/modules/project/project.controller.ts
 import { Request, Response } from "express";
 import { ProjectService } from "./project.service";
-import { Prisma } from "@prisma/client";
+import { Prisma, ProjectCategory } from "@prisma/client";
 
 // Create
 const createProject = async (req: Request, res: Response) => {
   try {
-    const result = await ProjectService.createProject(req.body);
+    // Validate request body
+    const { title, description, category, technologies } = req.body;
+
+    if (!title || !description) {
+      return res.status(400).json({
+        success: false,
+        message: "Title and description are required",
+      });
+    }
+
+    // Validate category if provided
+    if (category && !Object.values(ProjectCategory).includes(category)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid category. Must be one of: ${Object.values(
+          ProjectCategory
+        ).join(", ")}`,
+      });
+    }
+
+    // Prepare payload
+    const payload: Prisma.ProjectCreateInput = {
+      title,
+      description,
+      technologies: technologies || [],
+      category: category || ProjectCategory.FULLSTACK, // Default to FULLSTACK
+      featured: req.body.featured || false,
+    };
+
+    // Optional fields
+    if (req.body.thumbnail) payload.thumbnail = req.body.thumbnail;
+    if (req.body.liveUrl) payload.liveUrl = req.body.liveUrl;
+    if (req.body.githubUrl) payload.githubUrl = req.body.githubUrl;
+
+    const result = await ProjectService.createProject(payload);
+
     res.status(201).json({
       success: true,
       message: "Project created successfully",
       data: result,
     });
   } catch (error: any) {
-    console.error(error);
+    console.error("Create project error:", error);
 
     if (error instanceof Prisma.PrismaClientValidationError) {
       return res.status(400).json({
@@ -23,8 +59,7 @@ const createProject = async (req: Request, res: Response) => {
 
     res.status(500).json({
       success: false,
-      message:
-        error.message || "Something went wrong creating the project. Please try again later.",
+      message: error.message || "Something went wrong creating the project.",
     });
   }
 };
@@ -33,23 +68,54 @@ const createProject = async (req: Request, res: Response) => {
 const getAllProjects = async (req: Request, res: Response) => {
   try {
     const result = await ProjectService.getAllProjects();
-    if (!result.length) {
-      return res.status(404).json({
-        success: false,
-        message: "No projects found",
-        data: [],
-      });
-    }
+
     res.status(200).json({
       success: true,
-      message: "Projects fetched successfully",
+      message: result.length
+        ? "Projects fetched successfully"
+        : "No projects found",
       data: result,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Get all projects error:", error);
     res.status(500).json({
       success: false,
-      message: "Something went wrong while fetching projects. Please try again later.",
+      message: "Something went wrong while fetching projects.",
+    });
+  }
+};
+
+// Get Projects by Category
+const getProjectsByCategory = async (req: Request, res: Response) => {
+  try {
+    const { category } = req.params;
+
+    // Validate category
+    if (!Object.values(ProjectCategory).includes(category as ProjectCategory)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid category. Must be one of: ${Object.values(
+          ProjectCategory
+        ).join(", ")}`,
+      });
+    }
+
+    const result = await ProjectService.getProjectsByCategory(
+      category as ProjectCategory
+    );
+
+    res.status(200).json({
+      success: true,
+      message: result.length
+        ? "Projects fetched successfully"
+        : "No projects found in this category",
+      data: result,
+    });
+  } catch (error) {
+    console.error("Get projects by category error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong while fetching projects by category.",
     });
   }
 };
@@ -73,10 +139,10 @@ const getProjectById = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Get project by ID error:", error);
     res.status(500).json({
       success: false,
-      message: "Something went wrong while fetching project. Please try again later.",
+      message: "Something went wrong while fetching project.",
     });
   }
 };
@@ -85,6 +151,20 @@ const getProjectById = async (req: Request, res: Response) => {
 const updateProject = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+
+    // Validate category if provided
+    if (
+      req.body.category &&
+      !Object.values(ProjectCategory).includes(req.body.category)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid category. Must be one of: ${Object.values(
+          ProjectCategory
+        ).join(", ")}`,
+      });
+    }
+
     const result = await ProjectService.updateProject(id, req.body);
 
     res.status(200).json({
@@ -93,7 +173,7 @@ const updateProject = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
-    console.error(error);
+    console.error("Update project error:", error);
 
     if (error.code === "P2025") {
       return res.status(404).json({
@@ -104,7 +184,7 @@ const updateProject = async (req: Request, res: Response) => {
 
     res.status(500).json({
       success: false,
-      message: "Something went wrong while updating project. Please try again later.",
+      message: error.message || "Something went wrong while updating project.",
     });
   }
 };
@@ -120,7 +200,7 @@ const deleteProject = async (req: Request, res: Response) => {
       message: "Project deleted successfully",
     });
   } catch (error: any) {
-    console.error(error);
+    console.error("Delete project error:", error);
 
     if (error.code === "P2025") {
       return res.status(404).json({
@@ -131,7 +211,7 @@ const deleteProject = async (req: Request, res: Response) => {
 
     res.status(500).json({
       success: false,
-      message: "Something went wrong while deleting project. Please try again later.",
+      message: "Something went wrong while deleting project.",
     });
   }
 };
@@ -139,6 +219,7 @@ const deleteProject = async (req: Request, res: Response) => {
 export const ProjectController = {
   createProject,
   getAllProjects,
+  getProjectsByCategory,
   getProjectById,
   updateProject,
   deleteProject,

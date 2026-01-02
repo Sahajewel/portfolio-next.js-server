@@ -6,6 +6,7 @@ const project_controller_1 = require("./project.controller");
 const router = (0, express_1.Router)();
 router.post("/create-project", project_controller_1.ProjectController.createProject);
 router.get("/", project_controller_1.ProjectController.getAllProjects);
+router.get("/category/:category", project_controller_1.ProjectController.getProjectsByCategory);
 router.get("/:id", project_controller_1.ProjectController.getProjectById);
 router.patch("/:id", project_controller_1.ProjectController.updateProject);
 router.delete("/:id", project_controller_1.ProjectController.deleteProject);

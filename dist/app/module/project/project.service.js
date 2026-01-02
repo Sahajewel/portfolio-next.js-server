@@ -10,9 +10,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProjectService = void 0;
+// app/modules/project/project.service.ts
+const client_1 = require("@prisma/client");
 const db_1 = require("../../config/db");
 // Create Project
 const createProject = (payload) => __awaiter(void 0, void 0, void 0, function* () {
+    // Validate category if provided
+    if (payload.category &&
+        !Object.values(client_1.ProjectCategory).includes(payload.category)) {
+        throw new Error(`Invalid category. Must be one of: ${Object.values(client_1.ProjectCategory).join(", ")}`);
+    }
     const project = yield db_1.prisma.project.create({
         data: payload,
     });
@@ -20,7 +27,20 @@ const createProject = (payload) => __awaiter(void 0, void 0, void 0, function* (
 });
 // Get All Projects
 const getAllProjects = () => __awaiter(void 0, void 0, void 0, function* () {
-    return yield db_1.prisma.project.findMany();
+    return yield db_1.prisma.project.findMany({
+        orderBy: {
+            createdAt: "desc",
+        },
+    });
+});
+// Get Projects by Category
+const getProjectsByCategory = (category) => __awaiter(void 0, void 0, void 0, function* () {
+    return yield db_1.prisma.project.findMany({
+        where: { category },
+        orderBy: {
+            createdAt: "desc",
+        },
+    });
 });
 // Get Single Project
 const getProjectById = (id) => __awaiter(void 0, void 0, void 0, function* () {
@@ -30,6 +50,11 @@ const getProjectById = (id) => __awaiter(void 0, void 0, void 0, function* () {
 });
 // Update Project
 const updateProject = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
+    // Validate category if provided
+    if (payload.category &&
+        !Object.values(client_1.ProjectCategory).includes(payload.category)) {
+        throw new Error(`Invalid category. Must be one of: ${Object.values(client_1.ProjectCategory).join(", ")}`);
+    }
     return yield db_1.prisma.project.update({
         where: { id },
         data: payload,
@@ -44,6 +69,7 @@ const deleteProject = (id) => __awaiter(void 0, void 0, void 0, function* () {
 exports.ProjectService = {
     createProject,
     getAllProjects,
+    getProjectsByCategory,
     getProjectById,
     updateProject,
     deleteProject,
